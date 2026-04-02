@@ -21,7 +21,8 @@ _cache = {}
 def slug_from_url(url):
     if "/schematics.py/" in url:
         return url.split("/schematics.py/")[-1].strip("/")
-    return url.strip("/")
+    # Handle relative hrefs like "food_drink_alcohol" or href attributes
+    return url.replace(".py/", "").replace(".py", "").strip("/")
 
 def fetch_schematic(slug, emit):
     if slug in _cache:
@@ -50,50 +51,77 @@ def fetch_schematic(slug, emit):
     if ingredients_elem:
         current = ingredients_elem.find_next_sibling()
         if current and current.name == 'table':
-            # parse table
+            # parse table - look at all rows and extract links
             for tr in current.find_all("tr"):
                 if "This schematic is an ingredient" in tr.get_text():
                     break
                 tds = tr.find_all("td")
-                if len(tds) < 3:
+                if len(tds) < 2:
                     continue
                 qty_text = tds[0].get_text(strip=True)
                 if not qty_text.isdigit():
                     continue
                 qty = int(qty_text)
-                # find all a in tds[2]
-                links = tds[2].find_all('a', href=True)
+                
+                # Find all links in this row
+                links = tr.find_all('a', href=True)
                 for link in links:
-                    name_text = link.get_text(strip=True)
-                    href = link["href"]
+                    name_text = link.get_text(strip=True).strip()
+                    if not name_text:
+                        continue
+                    href = link.get("href", "")
+                    
                     if "/resourceType.py/" in href:
                         resources.append((qty, name_text))
-                    elif href and not href.startswith('http'):  # relative links for schematics
-                        if not any(s[0] == qty for s in subcomponents):  # add only the first subcomponent for this qty
+                    elif "schematics.py" in href or (href and "/" not in href and not href.startswith("http")):
+                        # Handle both absolute and relative schema links
+                        if href.startswith("/"):
                             sub_slug = slug_from_url(href)
-                            subcomponents.append((qty, name_text, sub_slug))
+                        else:
+                            # Convert relative href to slug
+                            sub_slug = href.replace(".py/", "").replace(".py", "").strip("/")
+                        subcomponents.append((qty, name_text, sub_slug))
         elif current and current.name in ['p', 'div']:
-            p = current
-            for a in p.find_all('a', href=True):
-                text_before = ''
-                for prev in a.previous_siblings:
+            # Parse text with inline links (like "2 Alcohol" with images between qty and link)
+            container_text = current.get_text(separator=" ", strip=True)
+            
+            # Find all potential quantity+resource/schematic patterns
+            links = current.find_all('a', href=True)
+            for link in links:
+                name_text = link.get_text(strip=True).strip()
+                if not name_text:
+                    continue
+                    
+                href = link.get("href", "")
+                
+                # Try to find quantity before the link
+                qty = 1
+                # Search backwards from the link for text containing a number
+                prev_text = []
+                for prev in link.previous_siblings:
                     if isinstance(prev, str):
-                        text_before = prev + text_before
-                    elif prev.name in ['a', 'img']:
-                        break
-                text_before = text_before.strip()
-                match = re.search(r'(\d+)\s*$', text_before)
+                        prev_text.insert(0, prev.strip())
+                    elif hasattr(prev, 'get_text'):
+                        prev_text.insert(0, prev.get_text(strip=True))
+                        if prev.name in ['img', 'a'] and prev_text[0]:
+                            break
+                
+                combined = " ".join(prev_text).strip()
+                match = re.search(r'(\d+)\s*$', combined)
                 if match:
                     qty = int(match.group(1))
-                    name_text = a.get_text(strip=True)
-                    href = a['href']
-                    if "/resourceType.py/" in href:
-                        resources.append((qty, name_text))
-                    elif "/schematics.py/" in href:
+                
+                if "/resourceType.py/" in href:
+                    resources.append((qty, name_text))
+                elif "schematics.py" in href or (href and "/" not in href and not href.startswith("http")):
+                    if href.startswith("/"):
                         sub_slug = slug_from_url(href)
-                        subcomponents.append((qty, name_text, sub_slug))
-    else:
-        # fallback to old table parsing if no ingredients section
+                    else:
+                        sub_slug = href.replace(".py/", "").replace(".py", "").strip("/")
+                    subcomponents.append((qty, name_text, sub_slug))
+    
+    # Fallback: check for table if no ingredients section found
+    if not resources and not subcomponents:
         table = soup.find("table")
         if table:
             for tr in table.find_all("tr"):
@@ -106,16 +134,19 @@ def fetch_schematic(slug, emit):
                 if not qty_text.isdigit():
                     continue
                 qty = int(qty_text)
-                link = tds[2].find("a")
-                if not link:
-                    continue
-                name_text = link.get_text(strip=True)
-                href = link["href"]
-                if "/resourceType.py/" in href:
-                    resources.append((qty, name_text))
-                elif "/schematics.py/" in href:
-                    sub_slug = slug_from_url(href)
-                    subcomponents.append((qty, name_text, sub_slug))
+                
+                links = tr.find_all('a', href=True)
+                for link in links:
+                    name_text = link.get_text(strip=True)
+                    href = link.get("href", "")
+                    if "/resourceType.py/" in href:
+                        resources.append((qty, name_text))
+                    elif "schematics.py" in href or (href and "/" not in href and not href.startswith("http")):
+                        if href.startswith("/"):
+                            sub_slug = slug_from_url(href)
+                        else:
+                            sub_slug = href.replace(".py/", "").replace(".py", "").strip("/")
+                        subcomponents.append((qty, name_text, sub_slug))
 
     result = {"name": name, "resources": resources, "subcomponents": subcomponents}
     _cache[slug] = result

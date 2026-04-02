@@ -10,7 +10,6 @@ A user-friendly web interface for scraping schematic resource requirements from 
 - ✅ **Subcomponent Expansion** - Automatically shows materials for components
 - ✅ **Grand Total** - Combined resource count for all schematics
 - ✅ **Download Results** - Save breakdown as a text file (.txt)
-- ✅ **Discord Formatting** - Export formatted for Discord (Nitro & Non-Nitro options)
 - ✅ **Easy to Use** - Clean, intuitive web interface
 
 ## Quick Start with VS Code
@@ -122,16 +121,6 @@ Your web browser will automatically open with the scraper interface.
 1. After scraping, scroll to the results section
 2. Click **"📥 Download as TXT"** to save the breakdown to your computer
 3. The file will be named `scraped_resources.txt`
-
-### Discord Export (Optional)
-
-1. After scraping, look for the **"Discord Export"** section
-2. Choose your Discord account type:
-   - **Non-Nitro (2000 char limit)** - For regular Discord accounts
-   - **Nitro (4000 char limit)** - For Discord Nitro subscribers
-3. The formatted text updates automatically based on your selection
-4. Click **"📋 Copy for Discord"** to copy the formatted text
-5. Paste directly into Discord!
 
 ## Requirements Explained
 
