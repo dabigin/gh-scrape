@@ -1,6 +1,22 @@
-# Galaxy Harvester Scraper GUI
+# Galaxy Harvester Scraper (GHScraper)
 
 A user-friendly web interface for scraping schematic resource requirements from Galaxy Harvester (galaxyharvester.net).
+
+## Quick Start (Choose One Method)
+
+### Option 1: Windows Executable (Easiest) ⭐
+**No Python installation required!**
+
+1. Download `GHScraper.exe` from the [Releases page](https://github.com/dabigin/gh-scrape/releases)
+2. Double-click `GHScraper.exe`
+3. Your browser will automatically open the scraper interface
+4. Done! No setup needed.
+
+### Option 2: Python Script (Requires Python)
+**For developers or if you prefer to run from source:**
+
+See the [Quick Start with VS Code](#quick-start-with-vs-code) section below.
+---
 
 ## Features
 
@@ -28,9 +44,9 @@ A user-friendly web interface for scraping schematic resource requirements from 
    ```
 4. Clone the repository by typing:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Galaxy-Harvester-Scraper.git
+   git clone https://github.com/dabigin/gh-scrape.git
    ```
-   Replace `YOUR_USERNAME` with the actual GitHub username/repo owner
+   Replace `dabigin` with the actual GitHub username/repo owner
 5. Navigate into the project folder:
    ```bash
    cd Galaxy-Harvester-Scraper
@@ -80,7 +96,7 @@ Wait for it to complete (you'll see "Successfully installed..." messages).
 
 In the same terminal, type:
 ```bash
-python gh_scraper_gui_fixed.py
+python GHScraper.py
 ```
 
 You should see:
@@ -175,22 +191,45 @@ Here are some example Galaxy Harvester schematic URLs you can use:
 
 ```
 Galaxy Harvester Scraping/
-├── gh_scraper_gui_fixed.py      # Main application (what you run)
-├── requirements.txt              # Python dependencies (installed with pip)
-├── README.md                      # This file
-└── Procfile                       # For Render deployment (optional)
+├── GHScraper.py                  # Main application (Python source)
+├── GHScraper.spec                # PyInstaller configuration
+├── dist/
+│   └── GHScraper.exe             # Standalone Windows executable
+├── build/                        # PyInstaller build artifacts
+├── requirements.txt              # Python dependencies
+├── README.md                     # This file
+└── Procfile                      # For Render deployment (optional)
 ```
 
 ## Restarting the Application
 
-If you need to restart the scraper:
+### If using GHScraper.exe:
+1. Simply close the browser window or command prompt
+2. Double-click `GHScraper.exe` again
 
+### If using Python script:
 1. In VS Code terminal, press **Ctrl+C** to stop the server
 2. Type the same command again:
    ```bash
-   python gh_scraper_gui_fixed.py
+   python GHScraper.py
    ```
 3. The web interface will open again
+
+## Building the Executable Yourself (Optional)
+
+If you want to rebuild `GHScraper.exe` from the Python source:
+
+1. Install PyInstaller:
+   ```bash
+   pip install pyinstaller
+   ```
+
+2. Build the executable:
+   ```bash
+   pyinstaller --onefile --windowed --name GHScraper GHScraper.py
+   ```
+
+3. The new exe will be created in the `dist/` folder
 
 ## Notes
 
@@ -198,6 +237,11 @@ If you need to restart the scraper:
 - All requests are read-only (no data is modified on Galaxy Harvester)
 - Results are processed locally on your machine
 - Internet connection is required to fetch data from Galaxy Harvester
+- The executable includes Python runtime, so no installation is needed
+
+## Support
+
+For issues or feature requests, please open an issue on the [GitHub repository](https://github.com/dabigin/gh-scrape/issues)
 
 ## License
 

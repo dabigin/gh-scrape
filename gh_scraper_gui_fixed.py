@@ -250,22 +250,24 @@ HTML = """<!DOCTYPE html>
   .card h2 { font-size: 13px; font-weight: 500; color: #94a3b8;
              text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
 
-  .url-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .url-num  { font-size: 12px; color: #64748b; width: 22px; text-align: right;
-              flex-shrink: 0; }
-  .url-row input { flex: 1; background: #0f1117; border: 1px solid #2d3148;
-                   border-radius: 8px; padding: 9px 12px; color: #e2e8f0;
-                   font-size: 13px; outline: none; transition: border 0.15s; }
-  .url-row input:focus { border-color: #4f8ef7; }
+  .url-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .url-num  { font-size: 12px; color: #64748b; width: 26px; text-align: right;
+              flex-shrink: 0; font-weight: 500; }
+  .url-row input { background: #0f1117; border: 1px solid #2d3148;
+                   border-radius: 8px; padding: 10px 12px; color: #e2e8f0;
+                   font-size: 13px; outline: none; transition: all 0.15s; }
+  .url-row input:first-of-type { flex: 1; }
+  .url-row input:focus { border-color: #4f8ef7; box-shadow: 0 0 0 2px rgba(79, 142, 247, 0.1); }
   .url-row input::placeholder { color: #475569; }
 
-  .qty-input { width: 70px !important; }
+  .qty-input { width: 80px !important; }
 
-  .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .btn { background: #252836; border: 1px solid #2d3148; border-radius: 8px;
-         color: #cbd5e1; padding: 7px 14px; font-size: 13px; cursor: pointer;
-         transition: background 0.15s; }
-  .btn:hover { background: #2d3148; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .btn { background: #2d7d46; border: 1px solid #1a5a36; border-radius: 8px;
+         color: #fff; padding: 10px 18px; font-size: 13px; font-weight: 500;
+         cursor: pointer; transition: all 0.15s; }
+  .btn:hover { background: #246038; box-shadow: 0 2px 8px rgba(45, 125, 70, 0.3); }
+  .btn:active { transform: scale(0.98); }
 
   .count-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
   .count-row label { font-size: 13px; color: #94a3b8; }
@@ -298,6 +300,25 @@ HTML = """<!DOCTYPE html>
                   transition: background 0.15s; margin-top: 14px; }
   #download-btn:hover { background: #154d8a; }
 
+  .discord-card { display: none; }
+  .discord-options { display: flex; gap: 14px; margin-bottom: 16px; }
+  .discord-option { display: flex; align-items: center; gap: 6px; }
+  .discord-option input[type="radio"] { cursor: pointer; }
+  .discord-option label { cursor: pointer; font-size: 13px; color: #94a3b8; }
+  .discord-sections { display: flex; flex-direction: column; gap: 12px; }
+  .discord-section { background: #0f1117; border-radius: 8px; padding: 12px;
+                    font-family: "Consolas", "Courier New", monospace;
+                    font-size: 11px; color: #cbd5e1; overflow-x: auto;
+                    max-height: 200px; min-height: 80px; white-space: pre-wrap;
+                    word-wrap: break-word; line-height: 1.4; position: relative; }
+  .discord-section-header { font-size: 10px; color: #64748b; margin-bottom: 8px;
+                            font-weight: 600; }
+  .discord-copy-btn { position: absolute; top: 8px; right: 8px; padding: 4px 8px;
+                     background: #1a5fa8; border: none; border-radius: 4px;
+                     color: white; font-size: 10px; cursor: pointer;
+                     transition: background 0.15s; }
+  .discord-copy-btn:hover { background: #154d8a; }
+
   .spinner { display: inline-block; width: 14px; height: 14px;
              border: 2px solid #4a7a5a; border-top-color: white;
              border-radius: 50%; animation: spin 0.7s linear infinite;
@@ -318,11 +339,17 @@ HTML = """<!DOCTYPE html>
 <main>
 
   <div class="card">
-    <h2>Schematic URLs & Quantities</h2>
-    <div id="url-list"></div>
     <div class="btn-row">
-      <button class="btn" onclick="addRow()">+ Add row</button>
-      <button class="btn" onclick="removeLast()">✕ Remove last</button>
+      <button class="btn" type="button" onclick="addRow()">+ Add</button>
+      <button class="btn" type="button" onclick="removeLast()">✕ Remove</button>
+    </div>
+    <h2>Schematic URLs & Quantities</h2>
+    <div id="url-list">
+      <div class="url-row">
+        <span class="url-num">1.</span>
+        <input type="text" placeholder="https://galaxyharvester.net/schematics.py/..." />
+        <input type="number" class="qty-input" min="1" value="1" />
+      </div>
     </div>
   </div>
 
@@ -339,6 +366,21 @@ HTML = """<!DOCTYPE html>
     <button id="download-btn" onclick="downloadResult()">💾  Download Notecard (.txt)</button>
   </div>
 
+  <div class="card discord-card" id="discord-card">
+    <h2>Discord Export</h2>
+    <div class="discord-options">
+      <div class="discord-option">
+        <input type="radio" id="discord-no-nitro" name="discord-format" value="2000" onchange="updateDiscordFormat()" checked />
+        <label for="discord-no-nitro">Without Nitro (2,000 char limit)</label>
+      </div>
+      <div class="discord-option">
+        <input type="radio" id="discord-nitro" name="discord-format" value="4000" onchange="updateDiscordFormat()" />
+        <label for="discord-nitro">With Nitro (4,000 char limit)</label>
+      </div>
+    </div>
+    <div class="discord-sections" id="discord-sections"></div>
+  </div>
+
 </main>
 
 <script>
@@ -346,16 +388,21 @@ let resultText = "";
 let pollTimer  = null;
 let logOffset  = 0;
 
-function addRow(val='') {
+function addRow(val) {
+  if (val===undefined) val='';
+  console.log('addRow called');
   const list = document.getElementById("url-list");
+  console.log('list element:', list);
   const idx  = list.children.length + 1;
   const div  = document.createElement("div");
   div.className = "url-row";
-  div.innerHTML = `<span class="url-num">${idx}.</span>
-    <input type="text" placeholder="https://galaxyharvester.net/schematics.py/..." value="${val}" />
-    <input type="number" class="qty-input" min="1" value="1" />`;
+  var html = '<span class="url-num">' + idx + '.</span>' +
+    '<input type="text" placeholder="https://galaxyharvester.net/schematics.py/..." value="' + val + '" />' +
+    '<input type="number" class="qty-input" min="1" value="1" />';
+  div.innerHTML = html;
   list.appendChild(div);
   renumber();
+  console.log('row added, now', list.children.length, 'rows');
 }
 
 function removeLast() {
@@ -382,24 +429,30 @@ function getUrls() {
 }
 
 function startScrape() {
+  console.log('startScrape called');
   const schematics = getUrls();
+  console.log('schematics:', schematics);
   if (!schematics.length) { alert("Please enter at least one schematic URL."); return; }
 
   document.getElementById("scrape-btn").disabled = true;
   document.getElementById("scrape-btn").innerHTML = '<span class="spinner"></span> Scraping...';
   document.getElementById("log-card").style.display   = "block";
   document.getElementById("result-card").style.display = "none";
+  document.getElementById("discord-card").style.display = "none";
   document.getElementById("download-btn").style.display = "none";
   document.getElementById("log-box").innerHTML = "";
   logOffset = 0;
 
+  console.log('sending fetch to /scrape');
   fetch("/scrape", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({schematics})
-  }).then(() => {
+  }).then(r => {
+    console.log('fetch response received:', r);
     pollTimer = setInterval(pollLog, 800);
   }).catch(e => {
+    console.error('fetch error:', e);
     appendLog("Error starting scrape: " + e, "warn");
     resetBtn();
   });
@@ -425,6 +478,8 @@ function pollLog() {
           document.getElementById("result-box").textContent = resultText;
           document.getElementById("result-card").style.display = "block";
           document.getElementById("download-btn").style.display = "block";
+          document.getElementById("discord-card").style.display = "block";
+          updateDiscordFormat();
         }
       }
     });
@@ -453,7 +508,69 @@ function downloadResult() {
   a.click();
 }
 
-addRow();
+function formatForDiscord(text, charLimit) {
+  const lines = text.split('\\n');
+  const sections = [];
+  let currentSection = '';
+  const codeBlockPrefix = '```\\n';
+  const codeBlockSuffix = '\\n```';
+
+  lines.forEach(line => {
+    const testLength = currentSection + line + '\\n';
+    const totalLength = testLength.length + codeBlockPrefix.length + codeBlockSuffix.length;
+
+    if (totalLength > charLimit && currentSection) {
+      sections.push(currentSection.trim());
+      currentSection = line + '\\n';
+    } else {
+      currentSection += line + '\\n';
+    }
+  });
+
+  if (currentSection) {
+    sections.push(currentSection.trim());
+  }
+
+  return sections;
+}
+
+function updateDiscordFormat() {
+  const charLimit = document.querySelector('input[name="discord-format"]:checked').value;
+  const sections = formatForDiscord(resultText, parseInt(charLimit));
+  const container = document.getElementById('discord-sections');
+  container.innerHTML = '';
+
+  sections.forEach((section, idx) => {
+    const div = document.createElement('div');
+    div.className = 'discord-section';
+    
+    const header = document.createElement('div');
+    header.className = 'discord-section-header';
+    header.textContent = 'Message ' + (idx + 1) + ' of ' + sections.length + ' (' + section.length + ' chars)';
+    
+    const content = document.createElement('div');
+    content.textContent = section;
+    content.style.paddingTop = '28px';
+    
+    const btn = document.createElement('button');
+    btn.className = 'discord-copy-btn';
+    btn.textContent = '📋 Copy';
+    btn.onclick = () => {
+      const textToCopy = '```\\n' + section + '\\n```';
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const original = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    };
+    
+    div.appendChild(header);
+    div.appendChild(content);
+    div.appendChild(btn);
+    container.appendChild(div);
+  });
+}
+
 </script>
 </body>
 </html>
