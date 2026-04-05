@@ -46,7 +46,6 @@ See the [Quick Start with VS Code](#quick-start-with-vs-code) section below.
    ```bash
    git clone https://github.com/dabigin/gh-scrape.git
    ```
-   Replace `dabigin` with the actual GitHub username/repo owner
 5. Navigate into the project folder:
    ```bash
    cd Galaxy-Harvester-Scraper
